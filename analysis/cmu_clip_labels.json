@@ -1,0 +1,272 @@
+{
+  "CMU_002_01": {
+    "cmu_subject": "various expressions and human behaviors",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_002_02": {
+    "cmu_subject": "various expressions and human behaviors",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_006_02": {
+    "cmu_subject": "dribble, shoot basketball",
+    "cmu_description": "basketball - forward dribble",
+    "category": "basketball"
+  },
+  "CMU_006_03": {
+    "cmu_subject": "dribble, shoot basketball",
+    "cmu_description": "basketball - forward dribble",
+    "category": "basketball"
+  },
+  "CMU_006_04": {
+    "cmu_subject": "dribble, shoot basketball",
+    "cmu_description": "basketball - forward dribble",
+    "category": "basketball"
+  },
+  "CMU_006_05": {
+    "cmu_subject": "dribble, shoot basketball",
+    "cmu_description": "basketball - forward dribble",
+    "category": "basketball"
+  },
+  "CMU_008_01": {
+    "cmu_subject": "walk",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_008_03": {
+    "cmu_subject": "walk",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_008_10": {
+    "cmu_subject": "walk",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_010_04": {
+    "cmu_subject": "kick soccer ball",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_015_01": {
+    "cmu_subject": "various everyday behaviors, dance moves",
+    "cmu_description": "walk/wander",
+    "category": "walking"
+  },
+  "CMU_015_03": {
+    "cmu_subject": "various everyday behaviors, dance moves",
+    "cmu_description": "walk/wander",
+    "category": "walking"
+  },
+  "CMU_015_09": {
+    "cmu_subject": "various everyday behaviors, dance moves",
+    "cmu_description": "walk/wander",
+    "category": "walking"
+  },
+  "CMU_016_11": {
+    "cmu_subject": "run, jump, walk",
+    "cmu_description": "walk, veer left",
+    "category": "walking"
+  },
+  "CMU_016_12": {
+    "cmu_subject": "run, jump, walk",
+    "cmu_description": "walk, veer left",
+    "category": "walking"
+  },
+  "CMU_016_13": {
+    "cmu_subject": "run, jump, walk",
+    "cmu_description": "walk, veer right",
+    "category": "walking"
+  },
+  "CMU_016_17": {
+    "cmu_subject": "run, jump, walk",
+    "cmu_description": "walk, 90-degree left turn",
+    "category": "walking"
+  },
+  "CMU_016_21": {
+    "cmu_subject": "run, jump, walk",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_016_22": {
+    "cmu_subject": "run, jump, walk",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_016_24": {
+    "cmu_subject": "run, jump, walk",
+    "cmu_description": "walk, veer left",
+    "category": "walking"
+  },
+  "CMU_016_25": {
+    "cmu_subject": "run, jump, walk",
+    "cmu_description": "walk, veer right",
+    "category": "walking"
+  },
+  "CMU_016_27": {
+    "cmu_subject": "run, jump, walk",
+    "cmu_description": "walk, 90-degree left turn",
+    "category": "walking"
+  },
+  "CMU_016_29": {
+    "cmu_subject": "run, jump, walk",
+    "cmu_description": "walk, 90-degree right turn",
+    "category": "walking"
+  },
+  "CMU_016_31": {
+    "cmu_subject": "run, jump, walk",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_016_32": {
+    "cmu_subject": "run, jump, walk",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_016_47": {
+    "cmu_subject": "run, jump, walk",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_016_58": {
+    "cmu_subject": "run, jump, walk",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_017_06": {
+    "cmu_subject": "different walking styles",
+    "cmu_description": "whistle, walk jauntily",
+    "category": "walking"
+  },
+  "CMU_017_07": {
+    "cmu_subject": "different walking styles",
+    "cmu_description": "whistle, walk jauntily",
+    "category": "walking"
+  },
+  "CMU_035_01": {
+    "cmu_subject": "walk, run",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_035_02": {
+    "cmu_subject": "walk, run",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_035_07": {
+    "cmu_subject": "walk, run",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_035_13": {
+    "cmu_subject": "walk, run",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_035_14": {
+    "cmu_subject": "walk, run",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_035_28": {
+    "cmu_subject": "walk, run",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_035_33": {
+    "cmu_subject": "walk, run",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_040_02": {
+    "cmu_subject": "navigate from corner to corner, interact with stepstool",
+    "cmu_description": "navigate - walk forward, backward, on a diagonal",
+    "category": "walking"
+  },
+  "CMU_040_03": {
+    "cmu_subject": "navigate from corner to corner, interact with stepstool",
+    "cmu_description": "navigate - walk forward, backward, on a diagonal",
+    "category": "walking"
+  },
+  "CMU_040_04": {
+    "cmu_subject": "navigate from corner to corner, interact with stepstool",
+    "cmu_description": "navigate - walk forward, backward, on a diagonal",
+    "category": "walking"
+  },
+  "CMU_040_05": {
+    "cmu_subject": "navigate from corner to corner, interact with stepstool",
+    "cmu_description": "navigate - walk forward, backward, on a diagonal",
+    "category": "walking"
+  },
+  "CMU_041_05": {
+    "cmu_subject": "navigate from corner to corner, interact with stepstool",
+    "cmu_description": "navigate - walk forward, backward, on a diagonal",
+    "category": "walking"
+  },
+  "CMU_049_01": {
+    "cmu_subject": "modern dance, gymnastics",
+    "cmu_description": "walk",
+    "category": "walking"
+  },
+  "CMU_069_04": {
+    "cmu_subject": "walking",
+    "cmu_description": "walk forward",
+    "category": "walking"
+  },
+  "CMU_069_05": {
+    "cmu_subject": "walking",
+    "cmu_description": "walk forward",
+    "category": "walking"
+  },
+  "CMU_069_06": {
+    "cmu_subject": "walking",
+    "cmu_description": "walk and turn (repeated)",
+    "category": "walking"
+  },
+  "CMU_083_36": {
+    "cmu_subject": "steps",
+    "cmu_description": "walk forward turn 90 degrees left walk forward",
+    "category": "walking"
+  },
+  "CMU_083_37": {
+    "cmu_subject": "steps",
+    "cmu_description": "walk forward turn 90 degrees right walk forward",
+    "category": "walking"
+  },
+  "CMU_083_38": {
+    "cmu_subject": "steps",
+    "cmu_description": "walk forward turn 90 degrees left walk forward",
+    "category": "walking"
+  },
+  "CMU_083_39": {
+    "cmu_subject": "steps",
+    "cmu_description": "walk forward turn 90 degrees right walk forward",
+    "category": "walking"
+  },
+  "CMU_086_08": {
+    "cmu_subject": "sports and various activities",
+    "cmu_description": "walking, squats, stretching, kicking, and punching",
+    "category": "other"
+  },
+  "CMU_108_21": {
+    "cmu_subject": "Walking with obstacles 2",
+    "cmu_description": "",
+    "category": "other"
+  },
+  "CMU_132_02": {
+    "cmu_subject": "Varying Weird Walks",
+    "cmu_description": "Walk With Arms Out, balancing",
+    "category": "walking"
+  },
+  "CMU_132_36": {
+    "cmu_subject": "Varying Weird Walks",
+    "cmu_description": "Walk Leaning To The Right",
+    "category": "walking"
+  },
+  "CMU_132_41": {
+    "cmu_subject": "Varying Weird Walks",
+    "cmu_description": "Walk With Stiff Arms",
+    "category": "walking"
+  }
+}

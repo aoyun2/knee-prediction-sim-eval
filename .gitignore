@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Local environments and runtime caches
+.venv/
+.venv*/
+.runtime/
+.cache/
+tmp/
+output/
+
+# Raw datasets, model banks, and generated runs
+data/
+datasets/
+runs/
+artifacts/
+checkpoints/
+mocap_data/
+mocapact_models/
+gt_dataset/
+samples_dataset.npy
+gt_data*.npy
+data*.npy
+.cache_mocapact*.npz
+
+# Generated media outside the verified submission package
+*.gif
+*.mp4
+
+# LaTeX build products
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Manuscript, Springer Nature class files, and the scripts that build and check
+# the submission documents
+manuscript/
+analysis/build_manuscript.py
+analysis/verify_submission.py
+analysis/verify_tables.py
+analysis/verify_references.py
+analysis/verify_archive.py
+tests/test_build_manuscript.py
+
+# LaTeX and packaging build products, wherever they land
+*.pdf
+*.zip
+*.docx

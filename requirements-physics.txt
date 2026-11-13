@@ -1,0 +1,20 @@
+# Version-sensitive MoCapAct/MuJoCo stack; use Python 3.10.
+numpy==1.26.4
+scipy==1.11.4
+torch>=2.3,<3
+mujoco==2.2.2
+dm-control==1.0.7
+stable-baselines3==2.6.0
+gymnasium>=1.0,<1.2
+shimmy>=2,<3
+# Installed from the official repository at the revision used for every
+# reported rollout; the name alone resolves to a different package index.
+mocapact @ git+https://github.com/microsoft/MoCapAct.git@ccbe6e6b186273f168b1db68c0290e8250ebcdb3
+h5py>=3.14,<4
+ml-collections>=1.1,<2
+cloudpickle>=2.2,<4
+pillow>=11,<13
+tqdm>=4.67,<5
+imageio>=2.37,<3
+imageio-ffmpeg>=0.6,<1
+setuptools>=80,<82

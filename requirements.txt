@@ -1,0 +1,4 @@
+# Gait120 preprocessing, residual-fusion prediction, and statistics
+numpy>=2.3,<2.6
+scipy>=1.16,<1.17
+pandas>=3.0,<3.1
