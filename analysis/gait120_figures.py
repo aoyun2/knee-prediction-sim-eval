@@ -502,29 +502,30 @@ def fig_per_checkpoint(data: dict[str, Any], out: Path) -> Path:
     hi = np.asarray([r["bootstrap_95pct_ci"][1] for r in rows])
     sd = np.asarray([r["prediction_rmse_sd_deg"] for r in rows])
 
-    fig, axes = plt.subplots(1, 2, figsize=(150 * MM, 105 * MM), sharey=True,
-                             gridspec_kw={"width_ratios": [1.8, 1], "wspace": 0.22})
-    y = np.arange(len(rows))
+    fig, axes = plt.subplots(1, 2, figsize=(160 * MM, 58 * MM),
+                             gridspec_kw={"width_ratios": [1.35, 1], "wspace": 0.34})
     ax = axes[0]
-    ax.errorbar(rho, y, xerr=[rho - lo, hi - rho], fmt="o", color=BLUE,
-                markersize=3.5, linewidth=1.0, capsize=0)
-    ax.axvline(0, color=MUTED, linewidth=0.8, linestyle="--")
-    ax.set_yticks(y); ax.set_yticklabels([f"{value:.2f}" for value in x])
-    ax.set_ylim(len(rows) - 0.5, -0.5)
-    ax.set_xlabel("Partial Spearman correlation (95% CI)")
-    ax.set_ylabel("Mean window prediction RMSE (deg)")
-    ax.set_xlim(-0.37, 0.35)
-    ax.set_title("Association across windows", fontsize=8, loc="left", pad=9)
-    clean(ax, grid="y"); panel(ax, "A", x=-0.20, y=1.07)
+    ax.fill_between(x, lo, hi, color=BLUE, alpha=0.16, linewidth=0, label="95% CI")
+    ax.plot(x, rho, color=BLUE, linewidth=1.6, marker="o", markersize=4.2,
+            markeredgecolor="white", markeredgewidth=0.6, label="partial $\\rho$")
+    ax.axhline(0, color=INK, linewidth=0.8)
+    ax.set_xlabel("mean window RMSE (deg)")
+    ax.set_ylabel("partial Spearman $\\rho$")
+    ax.set_ylim(-0.42, 0.42)
+    ax.legend(loc="upper left", ncol=2, columnspacing=1.2)
+    clean(ax, grid=None); panel(ax, "A", x=-0.17)
 
     ax = axes[1]
-    ax.scatter(sd, y, s=17, color=RUST, linewidths=0, zorder=3)
-    ax.set_xlabel("RMSE SD (deg)")
-    ax.set_xlim(0, max(sd) * 1.18)
-    ax.set_title("Error spread", fontsize=8, loc="left", pad=9)
-    ax.tick_params(axis="y", length=0)
-    clean(ax, grid="y"); panel(ax, "B", x=-0.12, y=1.07)
-    fig.subplots_adjust(left=0.15, bottom=0.13, top=0.88, right=0.98)
+    ax.plot(x, sd, color=RUST, linewidth=1.6, marker="o", markersize=4.2,
+            markeredgecolor="white", markeredgewidth=0.6)
+    ax.set_xlabel("mean window RMSE (deg)")
+    ax.set_ylabel("between-window RMSE SD (deg)")
+    ax.set_ylim(0, max(sd) * 1.2)
+    clean(ax, grid=None); panel(ax, "B", x=-0.20)
+    for ax in axes:
+        ax.spines[["left", "bottom"]].set_linewidth(0.9)
+        ax.spines[["left", "bottom"]].set_color(INK)
+        ax.tick_params(width=0.9, color=INK)
     return save(fig, out, "fig09_per_checkpoint.pdf")
 
 
