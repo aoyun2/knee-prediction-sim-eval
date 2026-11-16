@@ -134,30 +134,32 @@ def fig_overview(runs, out):
                  allow_pickle=False) as d:
         frames = np.asarray(d["frames"])
         ref_knee = np.asarray(d["knee_ref_actual_deg"], dtype=float)
-        cmd_knee = np.asarray(d["knee_good_query_deg"], dtype=float)
+        match_sign = float(np.asarray(d["override_knee_sign"]).reshape(()))
+        match_offset = float(np.asarray(d["override_knee_offset_deg"]).reshape(()))
+        dt = float(np.asarray(d["dt"]).reshape(()))
 
     titles = ["Gait120 recordings", "Residual-fusion prediction",
-              "Sampled training path", "Motion match to MoCapAct",
+              "Sampled training path", "Matched motion replay",
               "Paired simulation", "Accuracy vs instability"]
     notes = ["12 sEMG channels,\n90 participants",
              "knee angle 100 ms ahead",
-             "14 accuracy levels,\n22 to 4.9 deg",
+             f"14 checkpoints,\n{min(accuracy['mean_rmse_deg']):.1f} to {max(accuracy['mean_rmse_deg']):.1f} deg RMSE",
              "80 fixed windows",
              "reference vs\noverridden knee",
              "exploratory split near 13 deg"]
     colours = [MUTED, MUTED, MUTED, MUTED, MUTED, RUST]
 
-    fig = plt.figure(figsize=(180 * MM, 56 * MM))
-    gs = fig.add_gridspec(1, 6, wspace=0.34, left=0.015, right=0.985,
-                          top=0.80, bottom=0.24)
-    axes = [fig.add_subplot(gs[0, i]) for i in range(6)]
+    fig = plt.figure(figsize=(160 * MM, 100 * MM))
+    gs = fig.add_gridspec(2, 3, wspace=0.32, hspace=0.80, left=0.025, right=0.975,
+                          top=0.91, bottom=0.13)
+    axes = [fig.add_subplot(gs[i // 3, i % 3]) for i in range(6)]
 
     ax = axes[0]
     emg = w["emg"][:, :6]
     emg = (emg - emg.mean(0)) / np.maximum(emg.std(0), 1e-8)
     for i in range(emg.shape[1]):
-        ax.plot(np.clip(emg[:, i], -2, 5) * 0.30 + i, linewidth=0.55, color=BLUE)
-    ax.set_ylim(-1, emg.shape[1])
+        ax.plot(emg[:, i] * 0.30 + i, linewidth=0.55, color=BLUE)
+    ax.margins(y=0.04)
 
     ax = axes[1]
     ax.plot(w["knee"], color=INK, linewidth=1.0)
@@ -167,13 +169,16 @@ def fig_overview(runs, out):
     idx = np.unique(np.round(np.geomspace(1, path["steps"].size, 400)).astype(int) - 1)
     rmse = path["train_rmse_deg"][idx]
     ax.plot(np.arange(rmse.size), rmse, color=INK, linewidth=1.0)
-    for level in np.linspace(0, rmse.size - 1, 9)[1:-1]:
-        ax.axvline(level, color=GRID, linewidth=0.5, zorder=0)
     ax.set_ylim(0, rmse.max() * 1.08)
 
     ax = axes[3]
-    ax.plot(ref_knee, color=MUTED, linewidth=1.0, label="matched")
-    ax.plot(cmd_knee[: ref_knee.size], color=RAMP[2], linewidth=1.0, linestyle=":")
+    # Match the recorded query, not the untrained model's constant command.
+    query_time = np.arange(w["knee"].size) / 100.0
+    reference_time = np.arange(ref_knee.size) * dt
+    query = np.interp(reference_time, query_time, w["knee"])
+    aligned = match_sign * query + match_offset
+    ax.plot(ref_knee, color=MUTED, linewidth=1.0, label="reference")
+    ax.plot(aligned, color=RAMP[2], linewidth=1.0, linestyle="--")
 
     ax = axes[4]
     half = frames.shape[2] // 2
@@ -184,7 +189,7 @@ def fig_overview(runs, out):
     pad = 26
     y0, y1 = max(0, ys.min() - pad), min(scene.shape[0], ys.max() + pad)
     x0, x1 = max(0, xs.min() - pad), min(scene.shape[1], xs.max() + pad)
-    ax.imshow(scene[y0:y1, x0:x1], aspect="auto")
+    ax.imshow(scene[y0:y1, x0:x1], aspect="equal")
 
     ax = axes[5]
     x = np.asarray(accuracy["mean_rmse_deg"])
@@ -199,14 +204,14 @@ def fig_overview(runs, out):
         ax.set_xticks([]); ax.set_yticks([])
         for sp in ax.spines.values():
             sp.set_edgecolor(colours[i]); sp.set_linewidth(1.0)
-        ax.set_title(titles[i], fontsize=6.4, color=INK, pad=3)
+        ax.set_title(f"{i + 1}. {titles[i]}", fontsize=7.5, color=INK, pad=5)
         ax.text(0.5, -0.10, notes[i], transform=ax.transAxes, ha="center", va="top",
-                fontsize=5.9, color=MUTED, linespacing=1.35)
-        if i:
+                fontsize=7.0, color=MUTED, linespacing=1.2)
+        if i % 3:
             fig.add_artist(FancyArrowPatch(
-                (ax.get_position().x0 - 0.021, 0.52),
-                (ax.get_position().x0 - 0.005, 0.52),
-                transform=fig.transFigure, arrowstyle="-|>", mutation_scale=5.5,
+                (ax.get_position().x0 - 0.055, (ax.get_position().y0 + ax.get_position().y1) / 2),
+                (ax.get_position().x0 - 0.012, (ax.get_position().y0 + ax.get_position().y1) / 2),
+                transform=fig.transFigure, arrowstyle="-|>", mutation_scale=7.0,
                 linewidth=1.0, color=MUTED, shrinkA=0, shrinkB=0))
 
     return save(fig, out, "fig01_overview.pdf")
@@ -270,52 +275,50 @@ def fig_prediction_accuracy(data: dict[str, Any], out: Path) -> Path:
     n = np.array([no_emg[s] for s in subjects])
     improvement = n - f
 
-    fig, axes = plt.subplots(1, 3, figsize=(180 * MM, 54 * MM),
-                             gridspec_kw={"width_ratios": [1.0, 1.25, 0.85],
-                                          "wspace": 0.42})
+    fig, axes = plt.subplots(1, 2, figsize=(160 * MM, 67 * MM),
+                             gridspec_kw={"width_ratios": [1.0, 1.3], "wspace": 0.45})
 
     ax = axes[0]
-    for a, b in zip(n, f):
-        ax.plot([0, 1], [a, b], color=MUTED, alpha=0.18, linewidth=0.5, zorder=1)
-    ax.plot([0, 1], [n.mean(), f.mean()], color=RUST, linewidth=1.3,
-            marker="o", markersize=3.4, zorder=3, label="mean")
-    ax.set_xticks([0, 1]); ax.set_xticklabels(["without\nsEMG", "residual\nfusion"])
-    ax.set_xlim(-0.3, 1.3); ax.set_ylabel("participant RMSE (deg)")
-    ax.legend(loc="upper right")
-    clean(ax); panel(ax, "A")
+    limits = [min(n.min(), f.min()) - 0.25, max(n.max(), f.max()) + 0.25]
+    ax.plot(limits, limits, color=MUTED, linewidth=0.8, linestyle="--", zorder=1)
+    ax.scatter(n, f, s=15, color=BLUE, alpha=0.72, linewidths=0, zorder=2)
+    ax.scatter([n.mean()], [f.mean()], color=RUST, marker="D", s=30,
+               edgecolors="white", linewidths=0.5, zorder=3, label="mean")
+    ax.set(xlim=limits, ylim=limits, xlabel="RMSE without sEMG (deg)",
+           ylabel="RMSE with sEMG (deg)")
+    ax.set_aspect("equal", adjustable="box")
+    ax.text(0.04, 0.96, f"{int((improvement > 0).sum())} of {len(f)} improved",
+            transform=ax.transAxes, va="top", fontsize=7, color=INK)
+    ax.legend(loc="lower right")
+    clean(ax, grid=None); panel(ax, "A", x=-0.19)
 
     ax = axes[1]
-    order = np.argsort(improvement)
-    colours = np.where(improvement[order] > 0, BLUE, RUST)
-    ax.bar(np.arange(len(order)), improvement[order], color=colours,
-           width=0.82, linewidth=0)
-    ax.axhline(0, color=INK, linewidth=0.7)
-    ax.set_xlabel(f"participants, sorted ({int((improvement > 0).sum())} of {len(f)} improved)")
-    ax.set_ylabel("RMSE reduction from sEMG (deg)")
-    ax.set_xlim(-1, len(order))
-    clean(ax); panel(ax, "B")
-
-    ax = axes[2]
-    # Box beside the points.
-    bp = ax.boxplot([improvement], widths=0.30, showfliers=False,
+    ax.boxplot([improvement], positions=[1], widths=0.28, vert=False,
+                    showfliers=False,
                     medianprops={"color": INK, "linewidth": 1.0},
                     boxprops={"color": MUTED, "linewidth": 0.7},
                     whiskerprops={"color": MUTED, "linewidth": 0.7},
                     capprops={"color": MUTED, "linewidth": 0.7})
-    jitter = np.random.default_rng(0).uniform(-0.055, 0.055, improvement.size)
-    ax.scatter(np.full(improvement.size, 1.0) + jitter, improvement, s=5,
-               color=BLUE, alpha=0.45, linewidths=0, zorder=3)
+    jitter = np.random.default_rng(0).uniform(-0.13, 0.13, improvement.size)
+    ax.scatter(improvement, 1.48 + jitter, s=10,
+               color=BLUE, alpha=0.65, linewidths=0, zorder=3)
     lo, hi = data["ablation"]["bootstrap_95pct_ci_deg"]
-    ax.errorbar([1.34], [improvement.mean()],
-                yerr=[[improvement.mean() - lo], [hi - improvement.mean()]],
-                fmt="o", color=RUST, markersize=3.4, linewidth=1.0, capsize=2, zorder=4)
-    ax.axhline(0, color=MUTED, linewidth=0.6)
-    ax.set_xticks([]); ax.set_xlim(0.72, 1.58)
+    ax.errorbar([improvement.mean()], [0.35],
+                xerr=[[improvement.mean() - lo], [hi - improvement.mean()]],
+                fmt="D", color=RUST, markersize=4, linewidth=1.3, capsize=3, zorder=4)
+    ax.axvline(0, color=MUTED, linewidth=0.7, linestyle="--")
+    ax.set_yticks([0.35, 1, 1.48]); ax.set_yticklabels(["Mean", "Median / IQR", "Participants"])
+    ax.set_ylim(-0.25, 1.9)
+    ax.set_xlabel("RMSE reduction from sEMG (deg)")
     share = 100.0 * improvement.mean() / data["ablation"]["no_emg_mean_participant_rmse_deg"]
-    ax.text(1.42, improvement.mean(),
-            f"{improvement.mean():.3f}\n[{lo:.3f}, {hi:.3f}]\n{share:.1f}% of RMSE\nwithout sEMG",
-            va="center", fontsize=6.0, color=INK)
-    clean(ax); panel(ax, "C")
+    ax.text(improvement.mean(), 0.10,
+            f"{improvement.mean():.3f}  [95% CI {lo:.3f}, {hi:.3f}]",
+            ha="center", va="top", fontsize=6.8, color=INK)
+    ax.text(0.5, 0.98, f"Mean reduction: {share:.1f}%", transform=ax.transAxes,
+            ha="center", va="top", fontsize=7, color=INK)
+    clean(ax, grid=None); ax.spines["left"].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+    panel(ax, "B", x=-0.20)
     return save(fig, out, "fig04_prediction_accuracy.pdf")
 
 
@@ -346,7 +349,7 @@ def fig_matching(rows: list[dict[str, Any]], out: Path) -> Path:
     ax.plot(np.arange(knee.size), np.sort(knee), color=BLUE, linewidth=1.1, label="knee RMSE")
     ax.plot(np.arange(thigh.size), np.sort(thigh), color=RUST, linewidth=1.1,
             linestyle="--", label="thigh pitch RMS")
-    ax.set_xlabel(f"panel windows, sorted (n = {knee.size})")
+    ax.set_xlabel(f"rank within each error measure (n = {knee.size})")
     ax.set_ylabel("match error (deg)")
     ax.legend(loc="upper left")
     clean(ax); panel(ax, "B")
@@ -499,27 +502,33 @@ def fig_per_checkpoint(data: dict[str, Any], out: Path) -> Path:
     hi = np.asarray([r["bootstrap_95pct_ci"][1] for r in rows])
     sd = np.asarray([r["prediction_rmse_sd_deg"] for r in rows])
 
-    fig, axes = plt.subplots(1, 2, figsize=(180 * MM, 52 * MM))
+    fig, axes = plt.subplots(1, 2, figsize=(150 * MM, 105 * MM), sharey=True,
+                             gridspec_kw={"width_ratios": [1.8, 1], "wspace": 0.22})
+    y = np.arange(len(rows))
     ax = axes[0]
-    ax.errorbar(x, rho, yerr=[rho - lo, hi - rho], fmt="o", color=BLUE,
-                markersize=3.4, linewidth=1.0, capsize=2.5, alpha=0.9)
-    ax.axhline(0, color=INK, linewidth=0.8)
-    ax.set_xlabel("model accuracy: mean window RMSE (deg)")
-    ax.set_ylabel("partial $\\rho$\n(across windows)")
-    clean(ax, grid="both"); panel(ax, "A", x=-0.20)
+    ax.errorbar(rho, y, xerr=[rho - lo, hi - rho], fmt="o", color=BLUE,
+                markersize=3.5, linewidth=1.0, capsize=0)
+    ax.axvline(0, color=MUTED, linewidth=0.8, linestyle="--")
+    ax.set_yticks(y); ax.set_yticklabels([f"{value:.2f}" for value in x])
+    ax.set_ylim(len(rows) - 0.5, -0.5)
+    ax.set_xlabel("Partial Spearman correlation (95% CI)")
+    ax.set_ylabel("Mean window prediction RMSE (deg)")
+    ax.set_xlim(-0.37, 0.35)
+    ax.set_title("Association across windows", fontsize=8, loc="left", pad=9)
+    clean(ax, grid="y"); panel(ax, "A", x=-0.20, y=1.07)
 
     ax = axes[1]
-    ax.plot(x, sd, marker="o", markersize=3.4, linewidth=1.1, color=RUST)
-    ax.set_xlabel("model accuracy: mean window RMSE (deg)")
-    ax.set_ylabel("between-window RMSE SD (deg)")
-    ax.set_ylim(0, max(sd) * 1.25)
-    ax.text(0.98, 0.06, "between-window spread\nat every level",
-            transform=ax.transAxes, ha="right", fontsize=6.4, color=MUTED)
-    clean(ax); panel(ax, "B", x=-0.18)
+    ax.scatter(sd, y, s=17, color=RUST, linewidths=0, zorder=3)
+    ax.set_xlabel("RMSE SD (deg)")
+    ax.set_xlim(0, max(sd) * 1.18)
+    ax.set_title("Error spread", fontsize=8, loc="left", pad=9)
+    ax.tick_params(axis="y", length=0)
+    clean(ax, grid="y"); panel(ax, "B", x=-0.12, y=1.07)
+    fig.subplots_adjust(left=0.15, bottom=0.13, top=0.88, right=0.98)
     return save(fig, out, "fig09_per_checkpoint.pdf")
 
 
-EMG_SHORT = ["VL", "RF", "VM", "TA", "BF", "ST", "MG", "LG", "MS", "LS", "PL", "PB"]
+EMG_SHORT = ["VL", "RF", "VM", "TA", "BF", "ST", "GM", "GL", "SM", "SL", "PL", "PB"]
 
 
 def _panel_window(runs, query_id):
@@ -532,7 +541,7 @@ def _panel_window(runs, query_id):
     cache = np.load(runs.parent / "gait120_cache" / f"S{subject:03d}.npz", allow_pickle=False)
     trial = np.asarray(cache["trial_index"], dtype=int).reshape(-1)
     frame = np.asarray(cache["frame_index"], dtype=int).reshape(-1)
-    rows = np.flatnonzero((trial == 5) & (frame >= start - 60) & (frame < start + 100))
+    rows = np.flatnonzero((trial == 5) & (frame >= start - 69) & (frame < start + 100))
     return {
         "subject": subject,
         "emg": np.asarray(cache["emg_frame_native_value"], dtype=float)[rows],
@@ -541,6 +550,7 @@ def _panel_window(runs, query_id):
         "fused": np.asarray(q["fused_prediction_deg"], dtype=float),
         "labels": labels,
         "query_id": query_id,
+        "context_time_s": (frame[rows] - start) / 100.0,
     }
 
 
@@ -550,7 +560,7 @@ def fig_signals(runs, out):
     w = _panel_window(runs, "S065_trial05_start0069")
     emg = w["emg"]
     emg = (emg - emg.mean(0)) / np.maximum(emg.std(0), 1e-8)
-    t_ctx = np.arange(emg.shape[0]) / 100.0 - 0.6
+    t_ctx = w["context_time_s"]
     t = np.arange(w["knee"].size) / 100.0
 
     fig = plt.figure(figsize=(180 * MM, 74 * MM))
@@ -559,28 +569,30 @@ def fig_signals(runs, out):
 
     ax = fig.add_subplot(gs[:, 0])
     for i in range(emg.shape[1]):
-        ax.plot(t_ctx, np.clip(emg[:, i], -2.5, 6) * 0.34 + i, linewidth=0.7,
+        ax.plot(t_ctx, emg[:, i] * 0.34 + i, linewidth=0.7,
                 color=BLUE, alpha=0.85)
         ax.text(t_ctx[0] - 0.03, i, EMG_SHORT[i], ha="right", va="center",
                 fontsize=5.8, color=MUTED)
-    ax.axvspan(-0.15, 0.0, color=BLUE, alpha=0.12, lw=0)
-    ax.axvline(0.0, color=INK, linewidth=0.7)
+    ax.axvspan(-0.25, -0.10, color=BLUE, alpha=0.12, lw=0)
+    ax.axvline(-0.10, color=INK, linewidth=0.7)
     ax.set_xlim(t_ctx[0] - 0.11, t_ctx[-1])
-    ax.set_ylim(-1.2, emg.shape[1] + 0.4)
+    top = float(np.max(emg * 0.34 + np.arange(emg.shape[1]))) + 0.9
+    ax.set_ylim(-1.2, top)
     ax.set_yticks([])
     ax.set_xlabel("time relative to window start (s)")
     ax.set_title(f"recorded sEMG, S{w['subject']:03d}", fontsize=7.0, color=INK, pad=4)
-    ax.text(-0.075, emg.shape[1] + 0.1, "150 ms input", ha="center", fontsize=6.0, color=MUTED)
+    ax.text(-0.12, top - 0.15, "150 ms input", ha="right", va="top", fontsize=6.0, color=MUTED)
     clean(ax, grid=None); panel(ax, "A", x=-0.13)
 
     ax = fig.add_subplot(gs[0, 1])
-    ax.plot(np.arange(w["knee_full"].size) / 100.0 - 0.6, w["knee_full"],
+    ax.plot(t_ctx, w["knee_full"],
             color=INK, linewidth=1.1)
-    ax.axvspan(-0.6, 0.0, color=GRID, alpha=0.5, lw=0)
-    ax.axvline(0.0, color=INK, linewidth=0.7)
+    ax.axvspan(-0.70, -0.10, color=GRID, alpha=0.5, lw=0)
+    ax.axvline(-0.10, color=INK, linewidth=0.7)
+    ax.axvline(0.0, color=MUTED, linewidth=0.7, linestyle="--")
     ax.set_ylabel("knee flexion (deg)")
-    ax.set_xlim(-0.62, 1.0)
-    ax.text(-0.3, ax.get_ylim()[1] * 0.97, "600 ms history", ha="center",
+    ax.set_xlim(-0.72, 1.0)
+    ax.text(-0.4, ax.get_ylim()[1] * 0.97, "600 ms history", ha="center",
             va="top", fontsize=6.0, color=MUTED)
     ax.set_xlabel("time relative to window start (s)")
     clean(ax); panel(ax, "B", x=-0.11)
@@ -709,7 +721,7 @@ def fig_fwl(data, out):
     ax.axhline(0, color=INK, linewidth=0.7)
     ax.set_xlabel("window prediction RMSE (deg)")
     ax.set_ylabel("excess instability (s)")
-    ax.set_title(f"raw  $\\rho$ = {raw.statistic:+.3f}  (p = {raw.pvalue:.2f})",
+    ax.set_title(f"raw  $\\rho$ = {raw.statistic:+.3f}",
                  fontsize=7.0, color=INK, pad=4)
     clean(ax, grid="both"); panel(ax, "A", x=-0.24)
 
