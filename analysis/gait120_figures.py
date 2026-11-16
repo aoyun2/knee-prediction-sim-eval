@@ -516,11 +516,24 @@ def fig_per_checkpoint(data: dict[str, Any], out: Path) -> Path:
     clean(ax, grid=None); panel(ax, "A", x=-0.17)
 
     ax = axes[1]
-    ax.plot(x, sd, color=RUST, linewidth=1.6, marker="o", markersize=4.2,
-            markeredgecolor="white", markeredgewidth=0.6)
+    by_level: dict[str, list[float]] = {}
+    for r in data["_window_rows"]:
+        by_level.setdefault(r["checkpoint"], []).append(r["prediction_rmse_deg"]["fused"])
+    levels = sorted((np.mean(v), np.asarray(v)) for v in by_level.values())
+    centre = np.asarray([m for m, _ in levels])
+    p10 = np.asarray([np.percentile(v, 10) for _, v in levels])
+    p90 = np.asarray([np.percentile(v, 90) for _, v in levels])
+    median = np.asarray([np.median(v) for _, v in levels])
+    jitter = np.random.default_rng(0)
+    for m, v in levels:
+        ax.scatter(m + jitter.uniform(-0.18, 0.18, v.size), v, s=3, color=RUST,
+                   alpha=0.35, linewidths=0, zorder=2)
+    ax.fill_between(centre, p10, p90, color=RUST, alpha=0.16, linewidth=0,
+                    label="10th to 90th percentile")
+    ax.plot(centre, median, color=RUST, linewidth=1.6, label="median")
     ax.set_xlabel("mean window RMSE (deg)")
-    ax.set_ylabel("between-window RMSE SD (deg)")
-    ax.set_ylim(0, max(sd) * 1.2)
+    ax.set_ylabel("window RMSE (deg)")
+    ax.legend(loc="upper left")
     clean(ax, grid=None); panel(ax, "B", x=-0.20)
     for ax in axes:
         ax.spines[["left", "bottom"]].set_linewidth(0.9)
