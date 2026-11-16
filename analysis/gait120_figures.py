@@ -338,14 +338,14 @@ def fig_matching(rows: list[dict[str, Any]], out: Path) -> Path:
     ax.scatter([knee.mean()], [thigh.mean()], marker="D", s=30, color=RUST,
                zorder=4, label="mean")
     ax.set_xlabel("motion-match knee RMSE (deg)")
-    ax.set_ylabel("thigh orientation RMS (deg)")
+    ax.set_ylabel("thigh pitch RMS (deg)")
     ax.legend(loc="upper right")
     clean(ax, grid="both"); panel(ax, "A")
 
     ax = axes[1]
     ax.plot(np.arange(knee.size), np.sort(knee), color=BLUE, linewidth=1.1, label="knee RMSE")
     ax.plot(np.arange(thigh.size), np.sort(thigh), color=RUST, linewidth=1.1,
-            linestyle="--", label="thigh RMS")
+            linestyle="--", label="thigh pitch RMS")
     ax.set_xlabel(f"panel windows, sorted (n = {knee.size})")
     ax.set_ylabel("match error (deg)")
     ax.legend(loc="upper left")
@@ -555,7 +555,7 @@ def fig_signals(runs, out):
 
     fig = plt.figure(figsize=(180 * MM, 74 * MM))
     gs = fig.add_gridspec(2, 2, width_ratios=[1.0, 1.25], height_ratios=[1.0, 1.0],
-                          hspace=0.55, wspace=0.30)
+                          hspace=0.80, wspace=0.30)
 
     ax = fig.add_subplot(gs[:, 0])
     for i in range(emg.shape[1]):
@@ -582,7 +582,7 @@ def fig_signals(runs, out):
     ax.set_xlim(-0.62, 1.0)
     ax.text(-0.3, ax.get_ylim()[1] * 0.97, "600 ms history", ha="center",
             va="top", fontsize=6.0, color=MUTED)
-    ax.set_xticklabels([])
+    ax.set_xlabel("time relative to window start (s)")
     clean(ax); panel(ax, "B", x=-0.11)
 
     ax = fig.add_subplot(gs[1, 1])
@@ -719,7 +719,7 @@ def fig_fwl(data, out):
     ax.set_xlabel("motion-match knee RMSE (deg)")
     ax.set_ylabel("excess instability (s)")
     cm = stats.spearmanr(knee, excess)
-    ax.set_title(f"confounder  $\\rho$ = {cm.statistic:+.3f}", fontsize=7.0,
+    ax.set_title(f"covariate  $\\rho$ = {cm.statistic:+.3f}", fontsize=7.0,
                  color=INK, pad=4)
     clean(ax, grid="both"); panel(ax, "B", x=-0.24)
 
